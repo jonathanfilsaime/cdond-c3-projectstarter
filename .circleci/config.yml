@@ -4,7 +4,9 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      to:
+        default: "world"
+        type: string 
     steps:
       - run:
           name: Destroy environments
@@ -41,10 +43,8 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
-          name: Build front-end
-          command: |
-            # Your code here
-            exit 1
+          name: build front end
+          command: cd fronfend && npm install && npm build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -57,69 +57,80 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Back-end build
-          command: |
-             # Your code here
-             exit 1
+          name: build build back end
+          command: cd backend && npm install && npm build
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
 
   test-frontend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
-      # Restore from cache
-      # Your job code here
+      - checkout
+      - restore_cache:
+          keys: [frontend-test]
+      - run:
+          name: test front end 
+          command: cd frontend && npm install && npm run test
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-test
                 
   test-backend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
-      # Restore from cache
-      # Your job code here
+    - checkout
+    - restore_cache:
+        keys: [backend-test]
+    - run:
+        name: test backend
+        command: cd backend && npm install && npm run test
             
   scan-frontend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
-      # Restore from cache
-      # Your job code here
+    - checkout
+    - restore_cache:
+        keys: [scan-frontend]
+    - run:
+        name: scan front end
+        command: cd frontend && npm install && npm run lint
 
   scan-backend:
     docker:
-      # Docker image here
+      - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
-      # Restore from cache
-      # Your job code here
+    - checkout
+    - restore_cache:
+        keys: [scan-frontend]
+    - run:
+      name: scan back end
+      command: cd backend && npm install && npm run lint 
 
   deploy-infrastructure:
     docker:
-      # Docker image here that supports AWS CLI
+      - image: amazon/aws-cli
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              #--tags project=your-tag \
-              # --stack-name "your back-end stack name with workflow id" \
-              # --parameter-overrides ID="your workflow id"  
-              exit 1
+              --tags project=your-tag \
+              --stack-name "your back-end-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              #--tags project=your-tag \
-              # --stack-name "your front-end stack name with workflow id" \
-              # --parameter-overrides ID="your workflow id"  
-              exit 1
+              --tags project=your-tag \
+              --stack-name "your front-end-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
       - run:
           name: Add back-end ip to ansible inventory
           command: |
