@@ -105,7 +105,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        keys: [scan-frontend]
+        keys: [scan-backend]
     - run:
       name: scan back end
       command: cd backend && npm install && npm run lint 
