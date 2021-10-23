@@ -97,7 +97,7 @@ jobs:
         keys: [scan-frontend]
     - run:
         name: scan front end
-        command: cd frontend && npm install && npm run lint
+        command: cd frontend && npm install && npm audit fix
 
   scan-backend:
     docker:
@@ -108,7 +108,7 @@ jobs:
         keys: [scan-backend]
     - run:
         name: scan back end
-        command: cd backend && npm install && npm run lint 
+        command: cd backend && npm install && npm audit fix
 
   # deploy-infrastructure:
   #   docker:
