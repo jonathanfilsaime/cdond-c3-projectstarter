@@ -198,41 +198,41 @@ jobs:
         - revert-migrations
         - destroy-environment     
 
-  run-migrations:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run:
-          name: install awscli
-          command: |
-            sudo apt-get -y -qq update
-            sudo apt-get -qq install awscli
-            sudo apt-get -y -qq install python3
-      - run:
-          name: Run migrations
-          no_output_timeout: 10m
-          command: |
-            cd backend
-            npm i
-            npm run migrations | tee migration.log
-            migration_status=$(grep -c "has been executed successfully" migration.log)
-            if [ $migration_status -le 0 ]
-            then
-              echo "bad migration"
-              exit 1
-            fi
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-      - run:
-          name: save migration results to memstash
-          command: |
-            cd backend
-            echo "migration SUCCESS"
-            curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "true" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
-      - revert-migrations
-      - destroy-environment       
+  # run-migrations:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: install awscli
+  #         command: |
+  #           sudo apt-get -y -qq update
+  #           sudo apt-get -qq install awscli
+  #           sudo apt-get -y -qq install python3
+  #     - run:
+  #         name: Run migrations
+  #         no_output_timeout: 10m
+  #         command: |
+  #           cd backend
+  #           npm i
+  #           npm run migrations | tee migration.log
+  #           migration_status=$(grep -c "has been executed successfully" migration.log)
+  #           if [ $migration_status -le 0 ]
+  #           then
+  #             echo "bad migration"
+  #             exit 1
+  #           fi
+  #     - save_cache:
+  #         paths: [backend/node_modules]
+  #         key: backend-build
+  #     - run:
+  #         name: save migration results to memstash
+  #         command: |
+  #           cd backend
+  #           echo "migration SUCCESS"
+  #           curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "true" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
+  #     - revert-migrations
+  #     - destroy-environment       
 
   deploy-frontend:
     docker:
@@ -433,12 +433,12 @@ workflows:
               only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
       - deploy-frontend:
-         requires: [deploy-backend, run-migrations]
+         requires: [deploy-backend]
       - deploy-backend:
-          requires: [run-migrations]
+          requires: [deploy-backend]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
