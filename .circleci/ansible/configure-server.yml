@@ -17,8 +17,7 @@
     - configure-prometheus-node-exporter
     
   pre_tasks:
-    - name: "wait 600 seconds for target connection to become reachable/usable."
-      wait_for_connection: 600
+    # - name: "wait 600 seconds for target connection to become reachable/usable."
 
     - name: "install python for Ansible."
       become: yes
