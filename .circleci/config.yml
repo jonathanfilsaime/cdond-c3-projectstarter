@@ -195,8 +195,8 @@ jobs:
               cd .circleci/ansible
               ansible-playbook -i inventory.txt configure-server.yml
         - persist_to_workspace:
-          root: ~/
-          paths:
+            root: ~/
+            paths:
             - project/.circleci/ansible/inventory.txt
         - revert-migrations
         - destroy-environment     
