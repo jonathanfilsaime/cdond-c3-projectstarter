@@ -149,10 +149,9 @@ jobs:
             --data $IP \
             https://api.memstash.io/values/ip
             cat .circleci/ansible/inventory.txt
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
+      - run:
+          name: add tar untility
+          command: |
       - revert-migrations
       - destroy-environment
     
@@ -195,6 +194,10 @@ jobs:
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
               cd .circleci/ansible
               ansible-playbook -i inventory.txt configure-server.yml
+        - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
         - revert-migrations
         - destroy-environment     
 
