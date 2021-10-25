@@ -248,8 +248,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            IP=$(curl -H "token: << pipeline.parameters.memstash_id >>" \ 
-                        --request GET https://api.memstash.io/values/ip) 
+            IP=$(curl -H "token: << pipeline.parameters.memstash_id >>" --request GET https://api.memstash.io/values/ip) 
             export API_URL="http://${IP}:3030"
             echo API_URL="http://${IP}:3030" > "frontend/.env"
             echo "${API_URL}"
