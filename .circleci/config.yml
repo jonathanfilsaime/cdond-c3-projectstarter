@@ -214,22 +214,23 @@ jobs:
           no_output_timeout: 10m
           command: |
             cd backend
-            npm install && npm run build
-            touch migration_ouput.txt
-            npm run migrations > migration_ouput.txt
-            cat migration_ouput.txt
+            npm i
+            npm run migrations | tee migration.log
+            migration_status=$(grep -c "has been executed successfully" migration.log)
+            if [ $migration_status -le 0 ]
+            then
+              echo "bad migration"
+              exit 1
+            fi
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
       - run:
-          name: save migrations
+          name: save migration results to memstash
           command: |
             cd backend
-            if grep "executed successfully" migration_ouput.txt
-            then
             echo "migration SUCCESS"
-            # curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "true" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
-            else
-            echo "migration FAIL"
-            # curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "false" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
-            fi
+            curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "true" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
       - revert-migrations
       - destroy-environment       
 
