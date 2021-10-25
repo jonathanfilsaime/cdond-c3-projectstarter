@@ -149,9 +149,10 @@ jobs:
             --data $IP \
             https://api.memstash.io/values/ip
             cat .circleci/ansible/inventory.txt
-      - run:
-          name: add tar untility
-          command: |
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
       - revert-migrations
       - destroy-environment
     
@@ -194,10 +195,6 @@ jobs:
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
               cd .circleci/ansible
               ansible-playbook -i inventory.txt configure-server.yml
-        # - persist_to_workspace:
-        #     root: ~/
-        #     paths:
-        #     - project/.circleci/ansible/inventory.txt
         - revert-migrations
         - destroy-environment     
 
@@ -373,10 +370,10 @@ jobs:
           name: Retrieve old stack workflow ID 
           command: |
             aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --region us-east-1 --no-paginate --output text >> ./.circleci/previousWorkFlowID.txt
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/previousWorkFlowID.txt       
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/previousWorkFlowID.txt       
       - run:
           name: Update cloudfront distribution
           command: |
