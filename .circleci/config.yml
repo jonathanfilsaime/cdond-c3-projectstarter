@@ -116,9 +116,13 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: amazon/aws-cli
+      - image: circleci/python:latest
     steps:
       - checkout
+      - run:
+            name: Install dependencies
+            command: |
+              sudo apt-get install awscli
       - run:
           name: deploy back end infra 
           command: |
