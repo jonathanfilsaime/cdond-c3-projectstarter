@@ -338,7 +338,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:project,Values=udapeople-backend" \
             --output text) 
-            URL="http://${backendURL}:3030/api/status"
+            URL="http://${backendURL}:9100"
             echo $backendURL
             echo $URL
             curl $URL
@@ -355,8 +355,8 @@ jobs:
             return 1
             echo "FAIL - deployed failed (front end)"
             fi
-      # - revert-migrations
-      # - destroy-environment
+      - revert-migrations
+      - destroy-environment
 
   cloudfront-update:
     docker:
@@ -434,8 +434,8 @@ workflows:
           #     only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       - deploy-frontend:
          requires: [deploy-infrastructure]
       - deploy-backend:
