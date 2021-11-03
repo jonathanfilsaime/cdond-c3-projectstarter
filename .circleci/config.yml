@@ -327,6 +327,7 @@ jobs:
           command: |
             IP=$(curl -H "token: << pipeline.parameters.memstash_id >>" \
                         --request GET https://api.memstash.io/values/backend_ip)
+            echo $IP
             export API_URL="http://${IP}:3030"
             echo API_URL="http://${IP}:3030" > "frontend/.env"
             echo "${API_URL}"
@@ -338,6 +339,7 @@ jobs:
             --filters "Name=tag:project,Values=udapeople-backend" \
             --output text) 
             URL="http://${backendURL}:3030/api/status"
+            echo $backendURL
             echo $URL
             curl $URL
       - run:
