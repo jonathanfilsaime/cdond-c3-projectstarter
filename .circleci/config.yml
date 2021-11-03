@@ -13,6 +13,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            echo $CIRCLE_WORKFLOW_ID
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID}
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID}
             aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID} --force
@@ -47,7 +48,7 @@ jobs:
           keys: [frontend-build]
       - run:
           name: Build front-end
-          command: cd frontend && npm install && npm build
+          command: cd frontend && npm install && npm run build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -61,7 +62,7 @@ jobs:
           keys: [backend-build]
       - run:
           name: Back-end build
-          command: cd backend && npm install && npm build
+          command: cd backend && npm install && npm run build
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -100,7 +101,7 @@ jobs:
         keys: [scan-frontend]
     - run:
         name: scan front end
-        command: cd frontend && npm install && npm audit fix
+        command: cd frontend && npm install && npm audit fix --audit-level=critical --force 
 
   scan-backend:
     docker:
@@ -111,7 +112,7 @@ jobs:
         keys: [scan-backend]
     - run:
         name: scan back end
-        command: cd backend && npm install && npm audit fix
+        command: cd backend && npm install && npm audit fix --audit-level=critical --force
 
   deploy-infrastructure:
     docker:
@@ -149,17 +150,17 @@ jobs:
             --data $IP \
             https://api.memstash.io/values/ip
             cat .circleci/ansible/inventory.txt
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
       - revert-migrations
       - destroy-environment
     
 
   configure-infrastructure:
       docker:
-        - image: python:3.7-alpine3.11
+        - image: circleci/python:latest
       steps:
         - checkout
         - attach_workspace:
@@ -167,10 +168,13 @@ jobs:
         - add_ssh_keys:
             fingerprints: ["1b:44:51:30:00:83:58:cd:fd:f8:bf:c3:9f:f2:82:e2"]
         - run:
+            name: Install Ansible 
+            command: |
+              python -m pip install ansible
+        - run:
             name: Install dependencies
             command: |
-              apk add --update tar gzip ansible nodejs npm curl
-              pip install awscli
+              sudo apt-get install awscli
         - run:
             name: Set up inventory file
             command: |
@@ -203,23 +207,19 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - run:
-          name: install awscli
-          command: |
-            sudo apt-get -y -qq update
-            sudo apt-get -qq install awscli
-            sudo apt-get -y -qq install python3
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           no_output_timeout: 10m
           command: |
             cd backend
             npm i
-            npm run migrations | tee migration.log
-            migration_status=$(grep -c "has been executed successfully" migration.log)
-            if [ $migration_status -le 0 ]
+            npm run migrations >> logs.txt
+            status=$(grep -c "has been executed successfully" logs.txt)
+            if [ $status -le 0 ]
             then
-              echo "bad migration"
+              echo "bad failed"
               exit 1
             fi
       - save_cache:
@@ -231,20 +231,26 @@ jobs:
             cd backend
             echo "migration SUCCESS"
             curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash_id >>" --request PUT --data "true" https://api.memstash.io/values/migration-${CIRCLE_WORKFLOW_ID}
+      - run:
+          name: Install aws-cli
+          when: on_fail
+          command: |
+            sudo apt-get update
+            sudo apt-get install awscli
       - revert-migrations
       - destroy-environment       
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: circleci/node:13.8.0
     steps:
       - checkout   
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            yum -y install tar gzip 
-            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
-            yum -y install nodejs 
+            cd frontend && npm install
       - run:
           name: Get backend url
           command: |
@@ -252,6 +258,20 @@ jobs:
             export API_URL="http://${IP}:3030"
             echo API_URL="http://${IP}:3030" > "frontend/.env"
             echo "${API_URL}"
+      - run:
+          name: Build Frontend
+          command: |
+            cd frontend
+            cat frontend/.env
+            npm run build
+            ls -lR dist
+      - run:
+          name: Add aws-cli
+          command: |
+            sudo apt-get update
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - run:
           name: Deploy frontend objects
           command: |
@@ -265,7 +285,7 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/python:latest
     steps:
       - checkout
       - add_ssh_keys:
@@ -275,8 +295,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
-            apk add --update tar gzip curl nodejs npm
+            python -m pip install ansible
+            sudo apt install npm nodejs
             pip install awscli
       - run:
           name: install openssh
@@ -313,9 +333,11 @@ jobs:
 
   smoke-test:
     docker:
-      - image: warnerbros/node-awscli:12-alpine
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -327,8 +349,7 @@ jobs:
           command: |
             IP=$(curl -H "token: << pipeline.parameters.memstash_id >>" \
                         --request GET https://api.memstash.io/values/backend_ip)
-            export API_URL="http://${IP}:3030"
-            echo API_URL="http://${IP}:3030" > "frontend/.env"
+            echo "export API_URL="http://${IP}:3030" >> "frontend/.env"
             echo "${API_URL}"
       - run:
           name: Backend smoke test.
@@ -337,9 +358,27 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:project,Values=udapeople-backend" \
             --output text) 
-            URL="http://${backendURL}:3030/api/status"
+            echo "export URL=http://${backendURL}:3030/api/status" >> backend/.env
             echo $URL
             curl $URL
+      - run:
+          name: Backend smoke test.
+          command: |
+            # your code here
+            echo $URL
+            curl --connect-timeout 10 -s $URL
+            retval=$?
+
+            echo $retval
+
+            if [ $retval -eq 0 ]
+            then
+               echo "Backend OK"
+               exit 0
+            else
+               echo "Backend Fail"
+               exit 1
+            fi
       - run:
           name: Frontend smoke test.
           command: |
@@ -353,28 +392,42 @@ jobs:
             return 1
             echo "FAIL - deployed failed (front end)"
             fi
+      - run:
+          name: Install aws-cli
+          when: on_fail
+          command: |
+            sudo apt-get update
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - revert-migrations
       - destroy-environment
 
   cloudfront-update:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            pip3 install awscli
-            apk add --update curl
+            sudo apt-get update
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - run:
           name: Retrieve old stack workflow ID 
           command: |
             aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --region us-east-1 --no-paginate --output text >> ./.circleci/previousWorkFlowID.txt
             cat ./.circleci/previousWorkFlowID.txt
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/previousWorkFlowID.txt       
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get install tar gzip
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/previousWorkFlowID.txt
       - run:
           name: Update cloudfront distribution
           command: |
@@ -385,7 +438,8 @@ jobs:
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID}" \
             --region us-east-1
             --tags project=udapeople
-
+      - revert-migrations
+      - destroy-environment
 
   cleanup:
     docker:
