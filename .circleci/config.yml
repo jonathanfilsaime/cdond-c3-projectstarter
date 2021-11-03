@@ -236,22 +236,26 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout   
       - run:
-          name: Install dependencies
+          name: Install system dependencies
           command: |
-            yum -y install tar gzip 
-            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
-            yum -y install nodejs 
+            apk add --no-cache curl
+            apk add --no-cache --upgrade bash
+            apk add --no-cache --update npm
+            pip3 install awscli 
       - run:
-          name: Get backend url
+          name: Build the frontend
           command: |
-            IP=$(curl -H "token: << pipeline.parameters.memstash_id >>" --request GET https://api.memstash.io/values/ip) 
-            export API_URL="http://${IP}:3030"
-            echo API_URL="http://${IP}:3030" > "frontend/.env"
-            echo "${API_URL}"
+            PUBLIC_DNS=$(curl -H "token: << pipeline.parameters.memstash_id >>" --request GET https://api.memstash.io/values/ip)
+            echo ${PUBLIC_DNS}
+            export API_URL="http://${PUBLIC_DNS}:3030"
+            echo API_URL=${API_URL}
+            cd frontend
+            npm install
+            npm run build
       - run:
           name: Deploy frontend objects
           command: |
@@ -313,7 +317,7 @@ jobs:
 
   smoke-test:
     docker:
-      - image: warnerbros/node-awscli:12-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - run:
