@@ -355,8 +355,8 @@ jobs:
             return 1
             echo "FAIL - deployed failed (front end)"
             fi
-      - revert-migrations
-      - destroy-environment
+      # - revert-migrations
+      # - destroy-environment
 
   cloudfront-update:
     docker:
