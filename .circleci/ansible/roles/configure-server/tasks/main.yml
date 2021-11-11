@@ -14,7 +14,7 @@
 - name: "install node 14.X"
   become: true
   shell: |
-    sudo apt install -y nodejs
+    apt install -y nodejs
 
 - name: "install pm2 by npm"
   become: true

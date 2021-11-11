@@ -277,7 +277,7 @@ jobs:
             npm install webpack
             npm install -g webpack-dev-server
             npm update
-            npm run build
+            npm run buildit
       - run: 
           name: Copy built frontend files to the S3 bucket
           command: |

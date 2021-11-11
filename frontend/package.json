@@ -13,6 +13,7 @@
     "lint": "tslint -p tsconfig.json -c tslint.json",
     "build:prod": "export SET NODE_OPTIONS=--openssl-legacy-provider && webpack -p --progress --colors",
     "build": "export SET NODE_OPTIONS=--openssl-legacy-provider && webpack --mode development --progress --colors",
+    "buildit": "webpack --mode development --progress --colors",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
   },
   "license": "MIT",
