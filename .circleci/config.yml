@@ -350,54 +350,54 @@ jobs:
       
 
 workflows:
-  frontend:
-    jobs:
-      - hello:
-          filters:
-            branches:
-              ignore: master
-      - build-frontend:
-          requires:
-            - hello
-          filters:
-            branches:
-              ignore: master
-      - test-frontend:
-          requires:
-            - build-frontend
-          filters:
-            branches:
-              ignore: master
-      - analyze-frontend:
-          requires:
-            - test-frontend
-          filters:
-            branches:
-              ignore: master
-  backend:
-    jobs:
-      - hello:
-          filters:
-            branches:
-              ignore: master
-      - build-backend:
-          requires:
-            - hello
-          filters:
-            branches:
-              ignore: master
-      - test-backend:
-          requires:
-            - build-backend
-          filters:
-            branches:
-              ignore: master
-      - analyze-backend:
-          requires:
-            - test-backend
-          filters:
-            branches:
-              ignore: master
+  # frontend:
+  #   jobs:
+  #     - hello:
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - build-frontend:
+  #         requires:
+  #           - hello
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - test-frontend:
+  #         requires:
+  #           - build-frontend
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - analyze-frontend:
+  #         requires:
+  #           - test-frontend
+  #         filters:
+  #           branches:
+  #             ignore: master
+  # backend:
+  #   jobs:
+  #     - hello:
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - build-backend:
+  #         requires:
+  #           - hello
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - test-backend:
+  #         requires:
+  #           - build-backend
+  #         filters:
+  #           branches:
+  #             ignore: master
+  #     - analyze-backend:
+  #         requires:
+  #           - test-backend
+  #         filters:
+  #           branches:
+  #             ignore: master
   deploy:
     jobs:
       - create-new-infrastructure:
