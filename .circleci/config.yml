@@ -240,16 +240,16 @@ jobs:
             echo "[all]" > ./inventory
             echo ${PUBLIC_DNS} >> ./inventory
             cat ./inventory
-      # - add_ssh_keys:
-      #     fingerprints: ["1b:44:51:30:00:83:58:cd:fd:f8:bf:c3:9f:f2:82:e2"] # get it from CircleCI -> Project Settings -> SSH Keys -> Additional SSH Keys
-      # - run:
-      #     name: Configure server via ansible to deploy the backend
-      #     command: |
-      #       printenv >> ./backend/.env
-      #       cd .circleci/ansible/
-      #       ansible-playbook -i ./inventory deploy.yml
-      # - revert-migration
-      # - destroy-aws-resource
+      - add_ssh_keys:
+          fingerprints: ["1b:44:51:30:00:83:58:cd:fd:f8:bf:c3:9f:f2:82:e2"] # get it from CircleCI -> Project Settings -> SSH Keys -> Additional SSH Keys
+      - run:
+          name: Configure server via ansible to deploy the backend
+          command: |
+            printenv >> ./backend/.env
+            cd .circleci/ansible/
+            ansible-playbook -i ./inventory deploy.yml
+      - revert-migration
+      - destroy-aws-resource
       
 
   deploy-frontend:

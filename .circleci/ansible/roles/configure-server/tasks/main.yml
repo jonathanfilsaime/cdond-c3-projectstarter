@@ -6,11 +6,6 @@
   shell: |
     curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 
-- name: "script node 14.X"
-  become: true
-  shell: |
-    sudo sh ./setup_14.sh
-
 - name: "install node 14.X"
   become: true
   shell: |
