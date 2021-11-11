@@ -272,11 +272,11 @@ jobs:
             export API_URL="http://${PUBLIC_DNS}:3030"
             echo API_URL=${API_URL}
             cd frontend
-            sudo npm install --save-dev html-webpack-plugin@3
-            sudo npm install -g webpack
-            sudo npm install webpack
-            sudo npm install -g webpack-dev-server
-            sudo npm update
+            npm install --save-dev html-webpack-plugin@3
+            npm install -g webpack
+            npm install webpack
+            npm install -g webpack-dev-server
+            npm update
             npm run build
       - run: 
           name: Copy built frontend files to the S3 bucket
