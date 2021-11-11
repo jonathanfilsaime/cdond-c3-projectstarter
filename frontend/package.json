@@ -11,8 +11,8 @@
     "test:cov": "jest --coverage",
     "start": "export SET NODE_OPTIONS=--openssl-legacy-provider && webpack-dev-server --mode development --hot --progress --color --port 3000 --open",
     "lint": "tslint -p tsconfig.json -c tslint.json",
-    "build:prod": "webpack -p --progress --colors",
-    "build": "webpack --mode development --progress --colors",
+    "build:prod": "export SET NODE_OPTIONS=--openssl-legacy-provider && webpack -p --progress --colors",
+    "build": "export SET NODE_OPTIONS=--openssl-legacy-provider && webpack --mode development --progress --colors",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
   },
   "license": "MIT",
