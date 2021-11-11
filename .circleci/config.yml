@@ -301,17 +301,15 @@ jobs:
       - run:
           name: Smoke test on frontend
           command: |
-            URL="http://udapeople-s3bucket-${CIRCLE_WORKFLOW_ID}.s3-website.us-east-2.amazonaws.com/#/employees"
+            URL="http://udapeople-s3bucket-${CIRCLE_WORKFLOW_ID}.s3-website.us-east-2.amazonaws.com/index.html#/employees"
             echo "${URL}"
             curl -s ${URL}
-            curl -s ${URL} | grep "Welcome"
       - run:
           name: Smoke test on backend
           command: |
             PUBLIC_DNS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/public_dns)
             echo ${PUBLIC_DNS}
             curl -s "http://${PUBLIC_DNS}:3030/api/status"
-            curl -s "http://${PUBLIC_DNS}:3030/api/status" | grep "ok"
       
   delete-old-infrastructure:
     docker:
