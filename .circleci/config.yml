@@ -233,22 +233,23 @@ jobs:
       - run:
           name: Get the public DNS of EC2 instance from https://memstash.io/
           command: |
+            echo ${CIRCLE_WORKFLOW_ID}
             PUBLIC_DNS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/public_dns)
             echo ${PUBLIC_DNS}
             cd .circleci/ansible/
             echo "[all]" > ./inventory
             echo ${PUBLIC_DNS} >> ./inventory
             cat ./inventory
-      - add_ssh_keys:
-          fingerprints: ["1b:44:51:30:00:83:58:cd:fd:f8:bf:c3:9f:f2:82:e2"] # get it from CircleCI -> Project Settings -> SSH Keys -> Additional SSH Keys
-      - run:
-          name: Configure server via ansible to deploy the backend
-          command: |
-            printenv >> ./backend/.env
-            cd .circleci/ansible/
-            ansible-playbook -i ./inventory deploy.yml
-      - revert-migration
-      - destroy-aws-resource
+      # - add_ssh_keys:
+      #     fingerprints: ["1b:44:51:30:00:83:58:cd:fd:f8:bf:c3:9f:f2:82:e2"] # get it from CircleCI -> Project Settings -> SSH Keys -> Additional SSH Keys
+      # - run:
+      #     name: Configure server via ansible to deploy the backend
+      #     command: |
+      #       printenv >> ./backend/.env
+      #       cd .circleci/ansible/
+      #       ansible-playbook -i ./inventory deploy.yml
+      # - revert-migration
+      # - destroy-aws-resource
       
 
   deploy-frontend:
@@ -350,54 +351,54 @@ jobs:
       
 
 workflows:
-  # frontend:
-  #   jobs:
-  #     - hello:
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - build-frontend:
-  #         requires:
-  #           - hello
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - test-frontend:
-  #         requires:
-  #           - build-frontend
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - analyze-frontend:
-  #         requires:
-  #           - test-frontend
-  #         filters:
-  #           branches:
-  #             ignore: master
-  # backend:
-  #   jobs:
-  #     - hello:
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - build-backend:
-  #         requires:
-  #           - hello
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - test-backend:
-  #         requires:
-  #           - build-backend
-  #         filters:
-  #           branches:
-  #             ignore: master
-  #     - analyze-backend:
-  #         requires:
-  #           - test-backend
-  #         filters:
-  #           branches:
-  #             ignore: master
+  frontend:
+    jobs:
+      - hello:
+          filters:
+            branches:
+              ignore: master
+      - build-frontend:
+          requires:
+            - hello
+          filters:
+            branches:
+              ignore: master
+      - test-frontend:
+          requires:
+            - build-frontend
+          filters:
+            branches:
+              ignore: master
+      - analyze-frontend:
+          requires:
+            - test-frontend
+          filters:
+            branches:
+              ignore: master
+  backend:
+    jobs:
+      - hello:
+          filters:
+            branches:
+              ignore: master
+      - build-backend:
+          requires:
+            - hello
+          filters:
+            branches:
+              ignore: master
+      - test-backend:
+          requires:
+            - build-backend
+          filters:
+            branches:
+              ignore: master
+      - analyze-backend:
+          requires:
+            - test-backend
+          filters:
+            branches:
+              ignore: master
   deploy:
     jobs:
       - create-new-infrastructure:
