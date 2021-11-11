@@ -93,9 +93,9 @@ jobs:
           name: Compile the code
           command: |
             cd frontend
-            npm install -g webpack
-            npm install webpack
-            npm install -g webpack-dev-server
+            sudo npm install -g webpack
+            sudo npm install webpack
+            sudo npm install -g webpack-dev-server
             npm run build
       # 
 
