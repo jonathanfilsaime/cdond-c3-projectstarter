@@ -415,28 +415,28 @@ workflows:
       - create-new-infrastructure:
           filters:
             branches:
-              only: master
+              ignore: master
       - deploy-backend:
           requires:
             - create-new-infrastructure
           filters:
             branches:
-              only: master
+              ignore: master
       - deploy-frontend:
           requires:
             - deploy-backend
           filters:
             branches:
-              only: master
+              ignore: master
       - smoke-test:
           requires:
             - deploy-frontend
           filters:
             branches:
-              only: master
+              ignore: master
       - delete-old-infrastructure:
           requires:
             - smoke-test
           filters:
             branches:
-              only: master
+              ignore: master
