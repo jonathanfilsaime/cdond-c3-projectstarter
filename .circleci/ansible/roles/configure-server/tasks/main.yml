@@ -1,13 +1,9 @@
-- name: "test that ansible works"
-  shell: |
-    echo "hello mate"
-
-- name: "copy files from CircleCI to server"
+- name: "copy files from project to server"
   copy:
     src: /root/project/backend
     dest: /home/ubuntu
 
-- name: "Ansible shell module multiple commands"
+- name: "Download node"
   shell: |
     curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 
