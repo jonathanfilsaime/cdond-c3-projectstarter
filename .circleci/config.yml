@@ -310,7 +310,7 @@ jobs:
       
 
 workflows:
-  builds:
+  build-and-test:
     jobs:
       - build-frontend:
           filters:
@@ -320,9 +320,6 @@ workflows:
           filters:
             branches:
               only: master
-
-  tests:
-    jobs:
       - test-frontend:
           requires:
             - build-frontend
@@ -347,7 +344,7 @@ workflows:
           filters:
             branches:
               only: master
-              
+
   deploy:
     jobs:
       - deploy-infrastructure:
